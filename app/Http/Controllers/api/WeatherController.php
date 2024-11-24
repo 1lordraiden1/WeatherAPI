@@ -8,6 +8,7 @@ use App\Models\Weather;
 use Brick\Math\BigInteger;
 use Cache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Concurrency;
 use Log;
 
 class WeatherController extends Controller
@@ -135,25 +136,45 @@ class WeatherController extends Controller
 
         $endpoint = "current.json";
 
+        $results = Concurrency::driver('fork')->run(
+            [
+                fn () =>  getAndStore('cairo'),
+                fn () =>  getAndStore('riyadh'),
+                fn () =>  getAndStore('hongkong'),
+                fn () =>  getAndStore('paris'),
+                fn () =>  getAndStore('newyork'),
+                fn () =>  getAndStore('london'),
+            ]
+        );
+
+        
+
         # check if requested weather exists in DB
 
-        $weather = Weather::where("name" , "==" , $params["q"])->first();
+        /* $weather = Weather::where("name" , "==" , $params["q"])->first();
         if($weather && !$weather->is_expired()){
-            return 
-        }
+            return ;
+        } */
 
         #check if data stored
 
         
 
-        foreach ($this->countries as $country) {
+        /* foreach ($this->countries as $country) {
             $params["q"] = $country;
             $result = $this->WeatherAPI('get', $endpoint, $params);
 
             $test = $this->caching("$endpoint.$country", $result);
 
             array_push($results, $test);
-        }
-        return $results;
+        } */
+    }
+
+    public function getAndStore($country){
+        $params['q'] = $country;
+        $result = $this->WeatherAPI('get', $end ̰point , $params);
+        $object = new Weather();
+        $object['name'] = $country;
+        $object['data'] = $result;
     }
 }

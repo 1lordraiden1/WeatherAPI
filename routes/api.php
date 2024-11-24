@@ -24,4 +24,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::
         namespace('api')->group(function () {
             Route::get('/current', [App\Http\Controllers\API\WeatherController::class, 'index']);
+            Route::get('/test', [App\Http\Controllers\API\WeatherController::class, 'data']);
         });
